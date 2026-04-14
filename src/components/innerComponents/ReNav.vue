@@ -20,6 +20,7 @@
             {title:'专辑',name:''},
             {title:'排行榜',name:''},
             {title:'分类歌单',name:'Playlist'},
+            {title:'我的收藏',name:'Favorite'},
             {title:'电台',name:''},
             {title:'MV',name:''},
             {title:'数字专辑',name:''},
@@ -29,7 +30,13 @@
       },
       methods:{
         ChangeColor(index,name){
-          // 如果单击当前a元素 则添加样式curren_link
+          if(!name){
+            this.$message({
+              message:'该功能暂未开放',
+              type:'info'
+            });
+            return;
+          }
           this.currentIndex=index;
           this.$router.replace({name:name});
         }

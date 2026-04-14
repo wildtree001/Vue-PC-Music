@@ -18,7 +18,10 @@
           <!-- 默认模式 使用左边2个右边一个div的布局方式 -->
           <div class="mod_default_body">
             <div class="mod_player_toolbar">
-              <a href="javascript:;" class="mod_toolbar_btn p_btn"><i class="music_icon play_like_icon operate_icon"></i>收藏</a>
+              <a href="javascript:;" class="mod_toolbar_btn p_btn" @click="toggleFavorite">
+                <i class="music_icon play_like_icon operate_icon"></i>
+                <span :class="{'favorite_active': isCurrentSongFavorite}">{{ isCurrentSongFavorite ? '已收藏' : '收藏' }}</span>
+              </a>
               <a href="javascript:;" class="mod_toolbar_btn p_btn"><i class="music_icon play_add_icon operate_icon"></i>添加到</a>
               <a href="javascript:;" class="mod_toolbar_btn p_btn"><i class="music_icon play_download_icon operate_icon"></i>下载</a>
               <a href="javascript:;" class="mod_toolbar_btn p_btn" @click="handleDeleteSong"><i class="music_icon play_delete_icon operate_icon"></i>删除</a>
@@ -155,7 +158,6 @@
        computed:{
          songlist(){
            let arr = [], obj = {};
-           // 对象数组去重 防止试听列表中出现重复的歌曲
            arr = this.$store.getters.ListSong.reduce((item,next) => {
              obj[next.name] ? "" : obj[next.name]=true && item.push(next);
              return item;
@@ -170,10 +172,13 @@
          },
          inArr(){
            let self = this;
-           // 使用闭包实现 计算属性的参数传递
            return function (index) {
              return self.deletesArr.indexOf(index)!=-1;
            }
+         },
+         isCurrentSongFavorite(){
+           if(!this.playsong) return false;
+           return this.$store.getters.FavoriteSongs.some(s => s.songmid === this.playsong.songmid);
          }
        },
        methods:{
@@ -202,6 +207,28 @@
            }).then(()=>{
              self.$store.dispatch('EvalSongListForNew',[]);
            })
+         },
+         toggleFavorite(){
+           if(!this.playsong){
+             this.$message({
+               message:'请先选择一首歌曲',
+               type:'warning'
+             });
+             return;
+           }
+           if(this.isCurrentSongFavorite){
+             this.$store.dispatch('RemoveFavoriteSong', this.playsong.songmid);
+             this.$message({
+               message:'已取消收藏',
+               type:'success'
+             });
+           }else{
+             this.$store.dispatch('AddFavoriteSong', this.playsong);
+             this.$message({
+               message:'收藏成功',
+               type:'success'
+             });
+           }
          },
          play(item,index){
            let a = document.getElementById('audio'),self = this;

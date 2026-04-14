@@ -50,7 +50,12 @@ axios.get("../static/data.json")
       user:JSON.parse(window.sessionStorage.getItem('user')),
       nowPlay:null,
       playListSong:[],
-
+      favoriteSongs:JSON.parse(window.localStorage.getItem('favoriteSongs')) || [],
+      favoriteSingers:JSON.parse(window.localStorage.getItem('favoriteSingers')) || [],
+      favoritePlaylists:JSON.parse(window.localStorage.getItem('favoritePlaylists')) || [],
+      favoriteFolders:JSON.parse(window.localStorage.getItem('favoriteFolders')) || [
+        { id: 1, name: '默认收藏夹', songs: [], singers: [], playlists: [], createTime: new Date().toISOString() }
+      ]
     }
     const getters={
       isShow(state) {
@@ -68,7 +73,18 @@ axios.get("../static/data.json")
       ListSong(state){
         return state.playListSong;
       },
-
+      FavoriteSongs(state){
+        return state.favoriteSongs;
+      },
+      FavoriteSingers(state){
+        return state.favoriteSingers;
+      },
+      FavoritePlaylists(state){
+        return state.favoritePlaylists;
+      },
+      FavoriteFolders(state){
+        return state.favoriteFolders;
+      }
     }
     const mutations={
       hide(state){
@@ -85,7 +101,6 @@ axios.get("../static/data.json")
       },
       setUser(state,user){
         state.user=user;
-        // 将用户信息保存到当前回话
         window.sessionStorage.setItem('user',JSON.stringify(user));
       },
       setNowPlay(state,songinfo){
@@ -94,9 +109,81 @@ axios.get("../static/data.json")
       AddSong(state,songinfo){
         state.playListSong.push(songinfo);
       },
-      // 直接将歌单中所有的歌曲赋值
       EvalSongList(state,lists){
         state.playListSong = lists;
+      },
+      addFavoriteSong(state, song){
+        const exists = state.favoriteSongs.find(s => s.songmid === song.songmid);
+        if (!exists) {
+          state.favoriteSongs.push(song);
+          window.localStorage.setItem('favoriteSongs', JSON.stringify(state.favoriteSongs));
+        }
+      },
+      removeFavoriteSong(state, songmid){
+        state.favoriteSongs = state.favoriteSongs.filter(s => s.songmid !== songmid);
+        window.localStorage.setItem('favoriteSongs', JSON.stringify(state.favoriteSongs));
+      },
+      addFavoriteSinger(state, singer){
+        const exists = state.favoriteSingers.find(s => s.id === singer.id);
+        if (!exists) {
+          state.favoriteSingers.push(singer);
+          window.localStorage.setItem('favoriteSingers', JSON.stringify(state.favoriteSingers));
+        }
+      },
+      removeFavoriteSinger(state, singerId){
+        state.favoriteSingers = state.favoriteSingers.filter(s => s.id !== singerId);
+        window.localStorage.setItem('favoriteSingers', JSON.stringify(state.favoriteSingers));
+      },
+      addFavoritePlaylist(state, playlist){
+        const exists = state.favoritePlaylists.find(p => p.dissid === playlist.dissid);
+        if (!exists) {
+          state.favoritePlaylists.push(playlist);
+          window.localStorage.setItem('favoritePlaylists', JSON.stringify(state.favoritePlaylists));
+        }
+      },
+      removeFavoritePlaylist(state, dissid){
+        state.favoritePlaylists = state.favoritePlaylists.filter(p => p.dissid !== dissid);
+        window.localStorage.setItem('favoritePlaylists', JSON.stringify(state.favoritePlaylists));
+      },
+      addFavoriteFolder(state, folder){
+        const newFolder = {
+          id: Date.now(),
+          name: folder.name,
+          songs: [],
+          singers: [],
+          playlists: [],
+          createTime: new Date().toISOString()
+        };
+        state.favoriteFolders.push(newFolder);
+        window.localStorage.setItem('favoriteFolders', JSON.stringify(state.favoriteFolders));
+      },
+      removeFavoriteFolder(state, folderId){
+        state.favoriteFolders = state.favoriteFolders.filter(f => f.id !== folderId);
+        window.localStorage.setItem('favoriteFolders', JSON.stringify(state.favoriteFolders));
+      },
+      updateFavoriteFolder(state, { folderId, name }){
+        const folder = state.favoriteFolders.find(f => f.id === folderId);
+        if (folder) {
+          folder.name = name;
+          window.localStorage.setItem('favoriteFolders', JSON.stringify(state.favoriteFolders));
+        }
+      },
+      addSongToFolder(state, { folderId, song }){
+        const folder = state.favoriteFolders.find(f => f.id === folderId);
+        if (folder) {
+          const exists = folder.songs.find(s => s.songmid === song.songmid);
+          if (!exists) {
+            folder.songs.push(song);
+            window.localStorage.setItem('favoriteFolders', JSON.stringify(state.favoriteFolders));
+          }
+        }
+      },
+      removeSongFromFolder(state, { folderId, songmid }){
+        const folder = state.favoriteFolders.find(f => f.id === folderId);
+        if (folder) {
+          folder.songs = folder.songs.filter(s => s.songmid !== songmid);
+          window.localStorage.setItem('favoriteFolders', JSON.stringify(state.favoriteFolders));
+        }
       }
     }
     const actions={
@@ -123,6 +210,39 @@ axios.get("../static/data.json")
       },
       EvalSongListForNew(context,lists){
         context.commit('EvalSongList',lists);
+      },
+      AddFavoriteSong(context, song){
+        context.commit('addFavoriteSong', song);
+      },
+      RemoveFavoriteSong(context, songmid){
+        context.commit('removeFavoriteSong', songmid);
+      },
+      AddFavoriteSinger(context, singer){
+        context.commit('addFavoriteSinger', singer);
+      },
+      RemoveFavoriteSinger(context, singerId){
+        context.commit('removeFavoriteSinger', singerId);
+      },
+      AddFavoritePlaylist(context, playlist){
+        context.commit('addFavoritePlaylist', playlist);
+      },
+      RemoveFavoritePlaylist(context, dissid){
+        context.commit('removeFavoritePlaylist', dissid);
+      },
+      AddFavoriteFolder(context, folder){
+        context.commit('addFavoriteFolder', folder);
+      },
+      RemoveFavoriteFolder(context, folderId){
+        context.commit('removeFavoriteFolder', folderId);
+      },
+      UpdateFavoriteFolder(context, data){
+        context.commit('updateFavoriteFolder', data);
+      },
+      AddSongToFolder(context, data){
+        context.commit('addSongToFolder', data);
+      },
+      RemoveSongFromFolder(context, data){
+        context.commit('removeSongFromFolder', data);
       }
     }
     const store=new Vuex.Store({

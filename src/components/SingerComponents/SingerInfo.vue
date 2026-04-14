@@ -20,8 +20,8 @@
         </ul>
         <div class="singer_static_toolbar">
           <a class="green_btn p_btn" href="javascript:;"><i class="green_btn_icon music_icon icon_size"></i>播放歌手热门歌曲</a>
-          <a class="white_btn p_btn" href="javascript:;" @click="toggleState">
-            <i class="music_icon icon_size" :class="{'follow_icon':follow,'unfollow_icon':!follow}"></i>{{follow ? `已关注${fans}` : `关注${fans}`}}
+          <a class="white_btn p_btn" href="javascript:;" @click="toggleFavorite">
+            <i class="music_icon icon_size" :class="{'follow_icon':isFavorite,'unfollow_icon':!isFavorite}"></i>{{isFavorite ? `已收藏${fans}` : `收藏${fans}`}}
           </a>
         </div>
       </div>
@@ -35,18 +35,32 @@
       data(){
         return {
           staticTab:[{name:"单曲",nums:this.Info.music_inf.songName.length}],
-          follow:false,
         }
       },
       computed:{
         fans(){
           let fans = this.Info.singer_inf.fans;
           return fans > 10000 ? Number(fans/10000).toFixed(1)+'万' : fans;
+        },
+        isFavorite(){
+          return this.$store.getters.FavoriteSingers.some(s => s.id === this.Info.singer_inf.id);
         }
       },
       methods:{
-        toggleState(){
-          this.follow=!this.follow;
+        toggleFavorite(){
+          if(this.isFavorite){
+            this.$store.dispatch('RemoveFavoriteSinger', this.Info.singer_inf.id);
+            this.$message({
+              message:'已取消收藏',
+              type:'success'
+            });
+          }else{
+            this.$store.dispatch('AddFavoriteSinger', this.Info.singer_inf);
+            this.$message({
+              message:'收藏成功',
+              type:'success'
+            });
+          }
         }
       }
     }

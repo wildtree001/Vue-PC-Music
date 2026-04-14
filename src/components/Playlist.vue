@@ -33,13 +33,17 @@
                         <img :src=list.imgPath class="mod_lists_li_img mod_lists_scale"/>
                         <i class="music_play_btn hot_play_btn"></i>
                       </a>
-                    </div>
+                  </div>
                   <h4 class="mod_lists_title">
                     <span class="mod_lists_text"><a href="javascript:;">{{list.title}}</a></span>
                   </h4>
-                  <!-- 作者 -->
                   <div class="mod_lists_author"><a href="javascript:;">{{list.author}}</a></div>
                   <div class="mod_lists_num">播放量：{{list.num}}</div>
+                  <div class="mod_lists_action">
+                    <el-button type="text" size="small" @click.stop="toggleFavoritePlaylist(list)">
+                      {{ isPlaylistFavorite(list.dissid) ? '已收藏' : '收藏' }}
+                    </el-button>
+                  </div>
                 </div>
               </li>
           </ul>
@@ -66,7 +70,6 @@
       methods:{
         playThisLists(dissid){
           let self = this;
-          //同样的获取该歌单中所有的歌曲
           getSongListInfo(dissid).then(data=>{
             let songlist = data.data.cdlist[0].songlist;
             let a = getRightStructure(songlist);
@@ -85,13 +88,30 @@
         },
         FilterByCategory(categoryId){
           let self = this;
-          //修改当前类别
           self.CurrentBigFilter = categoryId;
           getDiscList(categoryId,this.currentFilter).then(res=>{
             let lists = res.data.list;
             let arr = getListsInfoStructure(lists);
             self.PlayLists = arr;
           })
+        },
+        isPlaylistFavorite(dissid){
+          return this.$store.getters.FavoritePlaylists.some(p => p.dissid === dissid);
+        },
+        toggleFavoritePlaylist(playlist){
+          if(this.isPlaylistFavorite(playlist.dissid)){
+            this.$store.dispatch('RemoveFavoritePlaylist', playlist.dissid);
+            this.$message({
+              message:'已取消收藏',
+              type:'success'
+            });
+          }else{
+            this.$store.dispatch('AddFavoritePlaylist', playlist);
+            this.$message({
+              message:'收藏成功',
+              type:'success'
+            });
+          }
         }
       },
       created() {

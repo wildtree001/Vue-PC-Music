@@ -6,6 +6,7 @@ import Singer from '../components/SingerIndex'
 import player from '../components/player'
 import Playlist from '../components/Playlist'
 import trp from '../components/trp'
+import Favorite from '../components/Favorite'
 
 Vue.use(Router)
 
@@ -31,7 +32,6 @@ export default new Router({
       component:Playlist
     },
     {
-      //这种传递路由参数的方式可以使得url没有查询字符串 且刷新不会丢失参数
       path:'/singer/:sn',
       name:"Singer",
       component:Singer
@@ -49,6 +49,11 @@ export default new Router({
       path:'/trp',
       name:'trp',
       component:trp
+    },
+    {
+      path:'/favorite',
+      name:'Favorite',
+      component:Favorite
     }
   ]
 })
