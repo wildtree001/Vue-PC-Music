@@ -18,9 +18,9 @@
           <!-- 默认模式 使用左边2个右边一个div的布局方式 -->
           <div class="mod_default_body">
             <div class="mod_player_toolbar">
-              <a href="javascript:;" class="mod_toolbar_btn p_btn" @click="toggleFavorite">
+              <a href="javascript:;" class="mod_toolbar_btn p_btn" @click="toggleFavoriteSelected">
                 <i class="music_icon play_like_icon operate_icon"></i>
-                <span :class="{'favorite_active': isCurrentSongFavorite}">{{ isCurrentSongFavorite ? '已收藏' : '收藏' }}</span>
+                <span>收藏选中</span>
               </a>
               <a href="javascript:;" class="mod_toolbar_btn p_btn"><i class="music_icon play_add_icon operate_icon"></i>添加到</a>
               <a href="javascript:;" class="mod_toolbar_btn p_btn"><i class="music_icon play_download_icon operate_icon"></i>下载</a>
@@ -51,8 +51,10 @@
                         <span :title="item.name">{{item.name}}</span>
                         <div class="mod_list_menu">
                           <a title="播放" href="javascript:;" @click="play(item,index)"><i class="song_menu_icon" :class="{'player_icon':!isplaying,'pause_icon':isplaying && playsongindex==index}"></i></a>
+                          <a title="收藏" href="javascript:;" @click="toggleFavoriteSong(item)">
+                            <i class="song_menu_icon" :class="isSongFavorite(item.songmid) ? 'favorite_icon' : 'unfavorite_icon'"></i>
+                          </a>
                           <a title="添加到歌单" href="javacript:;"><i class="song_menu_icon add_icon"></i></a>
-                          <!-- 下载按钮 暂时先展示 可以在数据中决定是否可以下载 -->
                           <a title="下载" href="javascript:;" v-show="true"><i class="song_menu_icon download_icon"></i></a>
                           <a title="分享" href="javascript:;"><i class="song_menu_icon share_icon"></i></a>
                         </div>
@@ -182,7 +184,53 @@
          }
        },
        methods:{
-         // 删除歌曲
+         isSongFavorite(songmid){
+           return this.$store.getters.FavoriteSongs.some(s => s.songmid === songmid);
+         },
+         toggleFavoriteSong(song){
+           if(this.isSongFavorite(song.songmid)){
+             this.$store.dispatch('RemoveFavoriteSong', song.songmid);
+             this.$message({
+               message:'已取消收藏',
+               type:'success'
+             });
+           }else{
+             this.$store.dispatch('AddFavoriteSong', song);
+             this.$message({
+               message:'收藏成功',
+               type:'success'
+             });
+           }
+         },
+         toggleFavoriteSelected(){
+           if(this.deletesArr.length==0){
+             return this.$message({
+               message:'请选择要收藏的歌曲',
+               type:'warning'
+             })
+           }
+           let self = this;
+           let addedCount = 0;
+           this.deletesArr.forEach(index => {
+             let song = self.songlist[index];
+             if(song && !self.isSongFavorite(song.songmid)){
+               self.$store.dispatch('AddFavoriteSong', song);
+               addedCount++;
+             }
+           });
+           if(addedCount > 0){
+             this.$message({
+               message:`已收藏 ${addedCount} 首歌曲`,
+               type:'success'
+             });
+           }else{
+             this.$message({
+               message:'所选歌曲已全部收藏',
+               type:'info'
+             });
+           }
+           this.deletesArr=[];
+         },
          handleDeleteSong(){
            if(this.deletesArr.length==0){
              return this.$message({
@@ -197,7 +245,6 @@
            self.$store.dispatch('EvalSongListForNew',filterArr);
            self.deletesArr=[];
          },
-         //清空列表
          handleClearSong(){
            let self = this;
            this.$MessageBox.confirm('确定要清空列表?','QQ音乐',{
@@ -207,28 +254,6 @@
            }).then(()=>{
              self.$store.dispatch('EvalSongListForNew',[]);
            })
-         },
-         toggleFavorite(){
-           if(!this.playsong){
-             this.$message({
-               message:'请先选择一首歌曲',
-               type:'warning'
-             });
-             return;
-           }
-           if(this.isCurrentSongFavorite){
-             this.$store.dispatch('RemoveFavoriteSong', this.playsong.songmid);
-             this.$message({
-               message:'已取消收藏',
-               type:'success'
-             });
-           }else{
-             this.$store.dispatch('AddFavoriteSong', this.playsong);
-             this.$message({
-               message:'收藏成功',
-               type:'success'
-             });
-           }
          },
          play(item,index){
            let a = document.getElementById('audio'),self = this;
