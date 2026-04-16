@@ -418,17 +418,43 @@
            e.stopPropagation();
          },
          toggleFavorite(){
-           if(!this.playsong){
-             this.$message.warning('请先选择一首歌曲');
+           // 优先处理当前播放的歌曲
+           if(this.playsong){
+             if(this.isCurrentSongFavorite){
+               this.$store.dispatch('RemoveFavoriteSong', this.playsong.songmid);
+               this.$message.success('已取消收藏');
+             }else{
+               this.$store.dispatch('AddFavoriteSong', this.playsong);
+               this.$message.success('已收藏');
+             }
              return;
            }
-           if(this.isCurrentSongFavorite){
-             this.$store.dispatch('RemoveFavoriteSong', this.playsong.songmid);
-             this.$message.success('已取消收藏');
-           }else{
-             this.$store.dispatch('AddFavoriteSong', this.playsong);
-             this.$message.success('已收藏');
+           // 如果没有播放的歌曲，检查是否有通过复选框选中的歌曲
+           if(this.deletesArr.length > 0){
+             let collected = 0;
+             let removed = 0;
+             for(let i of this.deletesArr){
+               let song = this.songlist[i];
+               if(song && song.songmid){
+                 if(this.$store.getters.isSongFavorite(song.songmid)){
+                   this.$store.dispatch('RemoveFavoriteSong', song.songmid);
+                   removed++;
+                 }else{
+                   this.$store.dispatch('AddFavoriteSong', song);
+                   collected++;
+                 }
+               }
+             }
+             if(collected > 0){
+               this.$message.success(`已收藏 ${collected} 首歌曲`);
+             }
+             if(removed > 0){
+               this.$message.success(`已取消收藏 ${removed} 首歌曲`);
+             }
+             return;
            }
+           // 都没有的话才提示
+           this.$message.warning('请先选择一首歌曲或播放一首歌曲');
          },
          showAddToFolderDialog(){
            if(!this.playsong){

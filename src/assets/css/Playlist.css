@@ -192,7 +192,7 @@
   right: 10px;
   opacity: 0;
   transition: opacity 0.3s;
-  z-index: 10;
+  z-index: 20;
 }
 
 .mod_lists_li_top:hover .list_hover_action{
@@ -200,22 +200,35 @@
 }
 
 .list_favorite_icon{
-  width: 28px;
-  height: 28px;
-  background-position: 0 -320px;
-  opacity: 0.8;
+  width: 24px;
+  height: 24px;
+  background-position: -20px -20px;
+  opacity: 0.7;
   display: block;
-  transition: opacity 0.2s;
+  background-color: rgba(0,0,0,0.5);
+  border-radius: 4px;
+  padding: 4px;
+  box-sizing: border-box;
+  background-repeat: no-repeat;
+  background-origin: content-box;
+  transition: all 0.2s;
 }
 
 .list_favorite_icon:hover{
   opacity: 1;
+  background-color: rgba(49,194,124,0.8);
 }
 
 .list_favorite_icon_active{
-  width: 28px;
-  height: 28px;
-  background-position: -40px -320px;
+  width: 24px;
+  height: 24px;
+  background-position: -60px -20px;
   opacity: 1;
   display: block;
+  background-color: rgba(49,194,124,0.8);
+  border-radius: 4px;
+  padding: 4px;
+  box-sizing: border-box;
+  background-repeat: no-repeat;
+  background-origin: content-box;
 }
