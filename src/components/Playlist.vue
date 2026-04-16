@@ -33,6 +33,14 @@
                         <img :src=list.imgPath class="mod_lists_li_img mod_lists_scale"/>
                         <i class="music_play_btn hot_play_btn"></i>
                       </a>
+                      <div class="list_hover_action">
+                        <a href="javascript:;" 
+                           :title="isPlaylistFavorite(list.dissid) ? '取消收藏' : '收藏'"
+                           @click.stop="togglePlaylistFavorite(list)">
+                          <i class="music_icon list_favorite_icon" 
+                             :class="{'list_favorite_icon_active': isPlaylistFavorite(list.dissid)}"></i>
+                        </a>
+                      </div>
                     </div>
                   <h4 class="mod_lists_title">
                     <span class="mod_lists_text"><a href="javascript:;">{{list.title}}</a></span>
@@ -92,6 +100,20 @@
             let arr = getListsInfoStructure(lists);
             self.PlayLists = arr;
           })
+        },
+        isPlaylistFavorite(dissid){
+          if(!dissid) return false;
+          return this.$store.getters.isPlaylistFavorite(dissid);
+        },
+        togglePlaylistFavorite(playlist){
+          if(!playlist || !playlist.dissid) return;
+          if(this.isPlaylistFavorite(playlist.dissid)){
+            this.$store.dispatch('RemoveFavoritePlaylist', playlist.dissid);
+            this.$message.success('已取消收藏');
+          }else{
+            this.$store.dispatch('AddFavoritePlaylist', playlist);
+            this.$message.success('已收藏');
+          }
         }
       },
       created() {
