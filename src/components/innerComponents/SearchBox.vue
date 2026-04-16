@@ -13,11 +13,8 @@
           <i class="search_icon music_icon"></i>
         </button>
       </div>
-      <!-- 搜索列表 -->
       <div class="search_list_wrapper">
-        <!-- 推荐搜索区域（输入框为空时显示） -->
         <div class="recommend_area" :class="{'drop':isDrop && !keywords.trim()}">
-          <!-- 搜索历史 -->
           <div class="search_history" v-if="searchHistory.length > 0">
             <dl class="search_history_list">
               <dt class="search_history_title">
@@ -31,36 +28,22 @@
                    v-for="(item,index) in topSearchHistory" 
                    :key="index"
                    class="search_history_link"
-                   @mousedown="selectHistory(item)">
+                   @mousedown="selectHistory(item.keyword)">
                   <span class="search_history_icon music_icon"></span>
-                  <span class="search_history_text">{{item}}</span>
-                  <span class="search_history_delete" @mousedown.stop="handleDeleteHistory(item)">
+                  <span class="search_history_text">{{item.keyword}}</span>
+                  <span class="search_history_delete" @mousedown.stop="handleDeleteHistory(item.keyword)">
                     <i class="delete_icon music_icon"></i>
                   </span>
                 </a>
               </dd>
               <dd v-if="searchHistory.length > 5" class="show_all_history">
-                <a href="javascript:;" @mousedown="toggleShowAllHistory">
-                  {{showAllHistory ? '收起' : '查看全部搜索历史'}}
-                  <i :class="['arrow_icon music_icon', {'rotate': showAllHistory}]"></i>
-                </a>
-              </dd>
-              <dd v-if="showAllHistory">
-                <a href="javascript:;" 
-                   v-for="(item,index) in restSearchHistory" 
-                   :key="'rest'+index"
-                   class="search_history_link"
-                   @mousedown="selectHistory(item)">
-                  <span class="search_history_icon music_icon"></span>
-                  <span class="search_history_text">{{item}}</span>
-                  <span class="search_history_delete" @mousedown.stop="handleDeleteHistory(item)">
-                    <i class="delete_icon music_icon"></i>
-                  </span>
+                <a href="javascript:;" @mousedown="goToHistoryPage">
+                  查看全部搜索历史
+                  <i class="more_arrow_icon music_icon"></i>
                 </a>
               </dd>
             </dl>
           </div>
-          <!-- 热门搜索区域 -->
           <div class="search_hot">
             <dl class="search_hot_list">
               <dt class="search_hot_title">热门搜索</dt>
@@ -78,9 +61,7 @@
             </dl>
           </div>
         </div>
-        <!-- 搜索结果列表（输入框有内容时显示） -->
         <div class="result_area" :class="{'drop':isDroped}">
-          <!-- 单曲部分 -->
           <div class="search_result_item" v-if="FilterMusic.songName.length > 0">
             <h4 class="search_result_item_title">
               <i class="music_icon song_icon ab_icon"></i>单曲
@@ -94,7 +75,6 @@
               </li>
             </ul>
           </div>
-          <!-- 歌手部分 -->
           <div class="search_result_item" v-if="FilterMusic.singerName.size > 0">
             <h4 class="search_result_item_title">
               <i class="music_icon singer_icon ab_icon"></i>歌手
@@ -107,7 +87,6 @@
               </li>
             </ul>
           </div>
-          <!-- 专辑部分 -->
           <div class="search_result_item" v-if="FilterMusic.Albums.length > 0">
             <h4 class="search_result_item_title">
               <i class="music_icon album_icon ab_icon"></i>专辑
@@ -121,7 +100,6 @@
               </li>
             </ul>
           </div>
-          <!-- 歌单部分 -->
           <div class="search_result_item" v-if="FilterMusic.Playlists.length > 0">
             <h4 class="search_result_item_title">
               <i class="music_icon playlist_icon ab_icon"></i>歌单
@@ -134,7 +112,6 @@
               </li>
             </ul>
           </div>
-          <!-- 搜索更多 -->
           <div class="search_more" v-if="hasSearchResult" @mousedown="searchKeyword(keywords)">
             <a href="javascript:;">搜索 "{{keywords}}" <i class="more_arrow_icon music_icon"></i></a>
           </div>
@@ -164,7 +141,6 @@
         SongLists:[],
         HotMusic:[],
         searchHistory: [],
-        showAllHistory: false,
         FilterMusic:{
           singerName: new Set(),
           songName: [],
@@ -180,9 +156,6 @@
       topSearchHistory() {
         return getTopSearchHistory(5);
       },
-      restSearchHistory() {
-        return this.searchHistory.slice(5);
-      },
       hasSearchResult() {
         return this.FilterMusic.songName.length > 0 || 
                this.FilterMusic.singerName.size > 0 || 
@@ -196,9 +169,9 @@
         this.loadSearchHistory();
       },
       handleBlur() {
-        setTimeout(() => {
-          this.isDrop = false;
-          this.showAllHistory = false;
+        var self = this;
+        setTimeout(function() {
+          self.isDrop = false;
         }, 200);
       },
       loadSearchHistory() {
@@ -220,8 +193,9 @@
         clearSearchHistory();
         this.loadSearchHistory();
       },
-      toggleShowAllHistory() {
-        this.showAllHistory = !this.showAllHistory;
+      goToHistoryPage() {
+        this.isDrop = false;
+        this.$router.push({ name: 'SearchHistory' });
       },
       handleSearch() {
         if (this.keywords.trim()) {
@@ -278,36 +252,40 @@
               _self.FilterMusic.singerName.add(item.singerName);
             }
             
-            for(let m of item.songName){
-              if(!!~m.name.indexOf(key)){
-                _self.FilterMusic.songName.push({"song":m.name,"singer":item.singerName});
+            for(var m = 0; m < item.songName.length; m++){
+              var song = item.songName[m];
+              if(!!~song.name.indexOf(key)){
+                _self.FilterMusic.songName.push({"song":song.name,"singer":item.singerName});
                 _self.FilterMusic.songName = _self.ReduceArray(_self.FilterMusic.songName, 'song');
               }
             }
             
-            for(let n of item.Albums){
-              if(!!~n.indexOf(key)){
-                _self.FilterMusic.Albums.push({"singer":item.singerName,"album":n});
+            for(var n = 0; n < item.Albums.length; n++){
+              var album = item.Albums[n];
+              if(!!~album.indexOf(key)){
+                _self.FilterMusic.Albums.push({"singer":item.singerName,"album":album});
                 _self.FilterMusic.Albums = _self.ReduceArray(_self.FilterMusic.Albums, 'album');
               }
             }
           }
           
-          const allPlaylists = [];
+          var allPlaylists = [];
           if(_self.SongLists.Recommend && Array.isArray(_self.SongLists.Recommend)){
-            allPlaylists.push(..._self.SongLists.Recommend);
+            allPlaylists.push.apply(allPlaylists, _self.SongLists.Recommend);
           }
           if(_self.SongLists.Starting && Array.isArray(_self.SongLists.Starting)){
-            allPlaylists.push(..._self.SongLists.Starting);
+            allPlaylists.push.apply(allPlaylists, _self.SongLists.Starting);
           }
-          for(let list of allPlaylists){
+          for(var p = 0; p < allPlaylists.length; p++){
+            var list = allPlaylists[p];
             if(list.title && !!~list.title.indexOf(key)){
               _self.FilterMusic.Playlists.push(list);
               _self.FilterMusic.Playlists = _self.ReduceArray(_self.FilterMusic.Playlists, 'dissid');
             }
           }
         }else {
-          setTimeout(_self.clearMusic, 200);
+          _self.clearMusic();
+          _self.loadSearchHistory();
         }
       }
     },
@@ -386,17 +364,6 @@
 }
 .show_all_history a:hover{
   color: #2caf6f;
-}
-.arrow_icon{
-  width: 10px;
-  height: 10px;
-  background-position: -180px -48px;
-  display: inline-block;
-  margin-left: 4px;
-  transition: transform 0.3s;
-}
-.arrow_icon.rotate{
-  transform: rotate(180deg);
 }
 .playlist_icon{
   background-position: -160px -200px;

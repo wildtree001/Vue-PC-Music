@@ -7,6 +7,7 @@ import player from '../components/player'
 import Playlist from '../components/Playlist'
 import trp from '../components/trp'
 import Search from '../components/Search'
+import SearchHistory from '../components/SearchHistory'
 
 Vue.use(Router)
 
@@ -55,6 +56,11 @@ export default new Router({
       path:'/search',
       name:'Search',
       component:Search
+    },
+    {
+      path:'/search/history',
+      name:'SearchHistory',
+      component:SearchHistory
     }
   ]
 })
