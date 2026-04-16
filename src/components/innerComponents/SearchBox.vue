@@ -154,7 +154,7 @@
         return this.isDrop && !!(this.keywords.trim());
       },
       topSearchHistory() {
-        return getTopSearchHistory(5);
+        return this.searchHistory.slice(0, 5);
       },
       hasSearchResult() {
         return this.FilterMusic.songName.length > 0 || 

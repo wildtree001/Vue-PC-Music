@@ -106,7 +106,7 @@
       },
       handleDelete(keyword){
         var self = this;
-        this.$confirm('确定要删除该搜索历史吗？', '提示', {
+        this.$MessageBox.confirm('确定要删除该搜索历史吗？', '提示', {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
           type: 'warning'
