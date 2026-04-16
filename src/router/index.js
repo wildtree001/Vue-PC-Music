@@ -6,6 +6,7 @@ import Singer from '../components/SingerIndex'
 import player from '../components/player'
 import Playlist from '../components/Playlist'
 import trp from '../components/trp'
+import Search from '../components/Search'
 
 Vue.use(Router)
 
@@ -49,6 +50,11 @@ export default new Router({
       path:'/trp',
       name:'trp',
       component:trp
+    },
+    {
+      path:'/search',
+      name:'Search',
+      component:Search
     }
   ]
 })
