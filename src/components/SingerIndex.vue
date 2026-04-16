@@ -10,9 +10,11 @@
           </div>
           <div class="song_list_wrap">
             <ul class="song_list_head">
+              <li class="song_list_head_index"></li>
               <li class="song_list_head_name">歌曲</li>
               <li class="song_list_head_album">专辑</li>
               <li class="song_list_head_time">时长</li>
+              <li class="song_list_head_action">操作</li>
             </ul>
             <ul class="song_list_content">
               <li v-for="(item,index) of singerInformation.music_inf.songName">
@@ -32,6 +34,13 @@
                   </div>
                   <div class="song_list_albumname song_list_col"><a href="javascript:;">{{item.album}}</a></div>
                   <div class="song_list_songtime song_list_col">04:00</div>
+                  <div class="song_list_action song_list_col">
+                    <a href="javascript:;" 
+                       :title="isSongFavorite(item.songmid) ? '取消收藏' : '收藏'"
+                       @click="toggleSongFavorite(item)">
+                      <i class="music_icon" :class="{'favorite_icon_active': isSongFavorite(item.songmid), 'favorite_icon': !isSongFavorite(item.songmid)}"></i>
+                    </a>
+                  </div>
                 </div>
               </li>
             </ul>
@@ -112,6 +121,24 @@
 
               this.$router.push({name:'player'});
             })
+        },
+        isSongFavorite(songmid){
+          if(!songmid) return false;
+          return this.$store.getters.isSongFavorite(songmid);
+        },
+        toggleSongFavorite(song){
+          if(!song || !song.songmid) return;
+          // 确保singer属性存在
+          if(!song.singer && this.singerInformation && this.singerInformation.singer_inf){
+            song.singer = this.singerInformation.singer_inf.name;
+          }
+          if(this.isSongFavorite(song.songmid)){
+            this.$store.dispatch('RemoveFavoriteSong', song.songmid);
+            this.$message.success('已取消收藏');
+          }else{
+            this.$store.dispatch('AddFavoriteSong', song);
+            this.$message.success('已收藏');
+          }
         }
       },
       created() {

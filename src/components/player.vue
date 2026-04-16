@@ -18,8 +18,11 @@
           <!-- 默认模式 使用左边2个右边一个div的布局方式 -->
           <div class="mod_default_body">
             <div class="mod_player_toolbar">
-              <a href="javascript:;" class="mod_toolbar_btn p_btn"><i class="music_icon play_like_icon operate_icon"></i>收藏</a>
-              <a href="javascript:;" class="mod_toolbar_btn p_btn"><i class="music_icon play_add_icon operate_icon"></i>添加到</a>
+              <a href="javascript:;" class="mod_toolbar_btn p_btn" :class="{'p_btn_green': isCurrentSongFavorite}" @click="toggleFavorite">
+                <i class="music_icon play_like_icon operate_icon"></i>
+                {{isCurrentSongFavorite ? '已收藏' : '收藏'}}
+              </a>
+              <a href="javascript:;" class="mod_toolbar_btn p_btn" @click="showAddToFolderDialog"><i class="music_icon play_add_icon operate_icon"></i>添加到</a>
               <a href="javascript:;" class="mod_toolbar_btn p_btn"><i class="music_icon play_download_icon operate_icon"></i>下载</a>
               <a href="javascript:;" class="mod_toolbar_btn p_btn" @click="handleDeleteSong"><i class="music_icon play_delete_icon operate_icon"></i>删除</a>
               <a href="javascript:;" class="mod_toolbar_btn p_btn" @click="handleClearSong"><i class="music_icon play_clear_icon operate_icon"></i>清空列表</a>
@@ -124,6 +127,35 @@
       <audio @canplay="sos" @timeupdate="updateSomething" @ended="playingover" autoplay="false" id="audio" :src="playurl">
 
       </audio>
+
+      <el-dialog title="添加到收藏夹" :visible.sync="showAddToFolderDialog" width="400px">
+        <div v-if="playsong">
+          <p style="margin-bottom: 20px;color: #666;">
+            歌曲：<span style="color: #31c27c;">{{playsong.name}}</span> - {{playsong.singer}}
+          </p>
+          <div style="max-height: 300px;overflow-y: auto;">
+            <div v-for="folder in userFolders" :key="folder.id" 
+                 class="folder_option" 
+                 :class="{'folder_option_selected': selectedFolderId === folder.id}"
+                 @click="selectedFolderId = folder.id">
+              <div class="folder_option_icon">
+                <i class="music_icon folder_icon_img_small"></i>
+              </div>
+              <div class="folder_option_info">
+                <span class="folder_option_name">{{folder.name}}</span>
+                <span class="folder_option_count">{{folder.songs.length}} 首</span>
+              </div>
+              <div class="folder_option_check" v-if="selectedFolderId === folder.id">
+                <i class="el-icon-check"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span slot="footer">
+          <el-button @click="showAddToFolderDialog = false">取消</el-button>
+          <el-button type="primary" @click="addToSelectedFolder">确定</el-button>
+        </span>
+      </el-dialog>
     </div>
 </template>
 
@@ -150,6 +182,8 @@
            isForbidden:false,
            progressVoiceInit:false,
            deletesArr:[],
+           showAddToFolderDialog:false,
+           selectedFolderId:null,
          }
        },
        computed:{
@@ -174,6 +208,13 @@
            return function (index) {
              return self.deletesArr.indexOf(index)!=-1;
            }
+         },
+         isCurrentSongFavorite(){
+           if(!this.playsong || !this.playsong.songmid) return false;
+           return this.$store.getters.isSongFavorite(this.playsong.songmid);
+         },
+         userFolders(){
+           return this.$store.getters.UserFolders;
          }
        },
        methods:{
@@ -375,6 +416,43 @@
            document.getElementById('audio').muted = !document.getElementById('audio').muted;
            //停止事件冒泡 否则dot元素将会回到初始值 即声音控制条降为0px
            e.stopPropagation();
+         },
+         toggleFavorite(){
+           if(!this.playsong){
+             this.$message.warning('请先选择一首歌曲');
+             return;
+           }
+           if(this.isCurrentSongFavorite){
+             this.$store.dispatch('RemoveFavoriteSong', this.playsong.songmid);
+             this.$message.success('已取消收藏');
+           }else{
+             this.$store.dispatch('AddFavoriteSong', this.playsong);
+             this.$message.success('已收藏');
+           }
+         },
+         showAddToFolderDialog(){
+           if(!this.playsong){
+             this.$message.warning('请先选择一首歌曲');
+             return;
+           }
+           this.selectedFolderId = this.userFolders.length > 0 ? this.userFolders[0].id : null;
+           this.showAddToFolderDialog = true;
+         },
+         addToSelectedFolder(){
+           if(!this.selectedFolderId){
+             this.$message.warning('请选择一个收藏夹');
+             return;
+           }
+           this.$store.dispatch('AddSongToFolder', {
+             folderId: this.selectedFolderId,
+             song: this.playsong
+           });
+           // 同时也添加到收藏歌曲列表
+           if(!this.isCurrentSongFavorite){
+             this.$store.dispatch('AddFavoriteSong', this.playsong);
+           }
+           this.$message.success('已添加到收藏夹');
+           this.showAddToFolderDialog = false;
          }
        },
        created() {

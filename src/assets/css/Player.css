@@ -145,6 +145,57 @@
 .mod_toolbar_btn:hover i{
   opacity: 1;
 }
+.p_btn_green{
+  background-color: #31c27c !important;
+  border-color: #31c27c !important;
+  opacity: 1 !important;
+}
+.p_btn_green i{
+  opacity: 1 !important;
+}
+.folder_option{
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  border: 1px solid #e5e5e5;
+  border-radius: 4px;
+  margin-bottom: 10px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.folder_option:hover{
+  border-color: #31c27c;
+}
+.folder_option_selected{
+  border-color: #31c27c;
+  background-color: rgba(49, 194, 124, 0.05);
+}
+.folder_option_icon{
+  margin-right: 12px;
+}
+.folder_icon_img_small{
+  width: 32px;
+  height: 32px;
+  background-position: 0 -300px;
+  display: block;
+}
+.folder_option_info{
+  flex: 1;
+}
+.folder_option_name{
+  display: block;
+  font-size: 14px;
+  color: #000;
+  margin-bottom: 2px;
+}
+.folder_option_count{
+  font-size: 12px;
+  color: #999;
+}
+.folder_option_check{
+  color: #31c27c;
+  font-size: 18px;
+}
 .mod_default_view{
   height: 482px;
   overflow-x: hidden;
